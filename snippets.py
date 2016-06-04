@@ -18,6 +18,20 @@ def put(name, snippet):
         cursor.execute("insert into snippets values (%s, %s)", (name, snippet))
     logging.debug("Snippet stored successfully")
     return name, snippet
+
+def catalog():
+    """Retrieve list of keywords"""
+    logging.info("Select keyword list")
+    with connection, connection.cursor() as cursor:
+        cursor.execute("select keyword from snippets order by keyword")
+        return cursor.fetchall()
+        
+def search(search_string):
+    "Search for a snippet based on wildcard"
+    logging.info("search snippet database")
+    with connection, connection.cursor() as cursor:
+        cursor.execute("select * from snippets where keyword like %s", (search_string,))
+        return cursor.fetchall()
     
 def get(name):
     """Retrieve the snippet with a given name."""
@@ -48,6 +62,14 @@ def main():
     get_parser = subparsers.add_parser("get", help="Retrieve a snippet")
     get_parser.add_argument("name", help="Name of the snippet")
     
+    # Subparse for the catalog command
+    logging.debug("Constructing the subparser")
+    catalog_parser = subparsers.add_parser("catalog", help="Retrieve keywords")
+    
+    # Subparse for the search command
+    logging.debug("Constructing the subparser")
+    search_parser = subparsers.add_parser("search", help="Wildcard search")
+    search_parser.add_argument("search_string", help="Search word")
     
     arguments = parser.parse_args()
     # Convert parsed arguments from Namespace to dictionary
@@ -60,6 +82,12 @@ def main():
     elif command == "get":
         snippet = get(**arguments)
         print("Retrieved snippet: {!r}".format(snippet))
+    elif command == "catalog":
+        keyword = catalog(**arguments)
+        print("Retrieved keyword: {!r}".format(keyword))
+    elif command == "search":
+        search_string = search(**arguments)
+        print("Search results: {!r}".format(search_string))
 
 if __name__ == "__main__":
     main()
